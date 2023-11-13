@@ -3,7 +3,7 @@ import sys
 import os
 from random import randrange as rand
 
-# The configuration
+# Tetris configuration
 cell_size = 23
 cols = 15
 rows = 27
@@ -96,7 +96,7 @@ class TetrisApp(object):
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.event.set_blocked(pygame.MOUSEMOTION)
         self.next_stone = tetris_shapes[rand(len(tetris_shapes))]
-        self.stone = None  # Initialize stone attribute
+        self.stone = None
         self.stone_x = 0
         self.stone_y = 0
         self.init_game()
@@ -107,11 +107,12 @@ class TetrisApp(object):
         self.level = 1
         self.score = 0
         self.lines = 0
-        self.fall_speed = 500  # Adjusted fall speed
+        self.fall_speed = 500
         self.speed_increase_per_level = 50
 
-        music_file = os.path.join(os.getcwd(), f"004 실습 프로젝트\\01 테트리스 게임\\background{self.level % 5 + 1}.mp3")
-        pygame.mixer.music.load(music_file)
+        music_file = f"background{self.level % 5 + 1}.mp3"
+        music_path = os.path.join(os.path.dirname(__file__), music_file)
+        pygame.mixer.music.load(music_path)
         pygame.mixer.music.play(-1)
 
         pygame.time.set_timer(pygame.USEREVENT + 1, self.fall_speed)
@@ -140,7 +141,7 @@ class TetrisApp(object):
                             cell_size), 0)
                     pygame.draw.rect(
                         self.screen,
-                        colors[8],  # Helper color for grid
+                        colors[8],
                         pygame.Rect(
                             (off_x + x) * cell_size,
                             (off_y + y) * cell_size,
@@ -173,8 +174,8 @@ class TetrisApp(object):
             self.fall_speed = max(100, self.fall_speed)
             pygame.time.set_timer(pygame.USEREVENT + 1, self.fall_speed)
 
-            music_file = os.path.join(os.getcwd(), f"004 실습 프로젝트\\01 테트리스 게임\\background{self.level % 5 + 1}.mp3")
-            pygame.mixer.music.load(music_file)
+            music_file = f"background{self.level % 5 + 1}.mp3"
+            pygame.mixer.music.load(os.path.join(os.getcwd(), music_file))
             pygame.mixer.music.play(-1)
 
     def move(self, delta_x):
@@ -184,9 +185,7 @@ class TetrisApp(object):
                 new_x = 0
             if new_x > cols - len(self.stone[0]):
                 new_x = cols - len(self.stone[0])
-            if not check_collision(self.board,
-                                   self.stone,
-                                   (new_x, self.stone_y)):
+            if not check_collision(self.board, self.stone, (new_x, self.stone_y)):
                 self.stone_x = new_x
 
     def quit(self):
@@ -200,20 +199,14 @@ class TetrisApp(object):
         if not self.gameover and not self.paused:
             self.score += 1 if manual else 0
             self.stone_y += 1
-            if check_collision(self.board,
-                               self.stone,
-                               (self.stone_x, self.stone_y)):
-                self.board = join_matrixes(
-                    self.board,
-                    self.stone,
-                    (self.stone_x, self.stone_y))
+            if check_collision(self.board, self.stone, (self.stone_x, self.stone_y)):
+                self.board = join_matrixes(self.board, self.stone, (self.stone_x, self.stone_y))
                 self.new_stone()
                 cleared_rows = 0
                 while True:
                     for i, row in enumerate(self.board[:-1]):
                         if 0 not in row:
-                            self.board = remove_row(
-                                self.board, i)
+                            self.board = remove_row(self.board, i)
                             cleared_rows += 1
                             break
                     else:
@@ -224,15 +217,13 @@ class TetrisApp(object):
 
     def insta_drop(self):
         if not self.gameover and not self.paused:
-            while(not self.drop(True)):
+            while not self.drop(True):
                 pass
 
     def rotate_stone(self):
         if not self.gameover and not self.paused:
             new_stone = rotate_clockwise(self.stone)
-            if not check_collision(self.board,
-                                   new_stone,
-                                   (self.stone_x, self.stone_y)):
+            if not check_collision(self.board, new_stone, (self.stone_x, self.stone_y)):
                 self.stone = new_stone
 
     def toggle_pause(self):
@@ -272,18 +263,14 @@ class TetrisApp(object):
                                      (255, 255, 255),
                                      (self.rlim + 1, 0),
                                      (self.rlim + 1, self.height - 1))
-                    self.disp_msg("Next:", (
-                        self.rlim + cell_size,
-                        2))
+                    self.disp_msg("Next:", (self.rlim + cell_size, 2))
                     self.disp_msg("Score: %d\n\nLevel: %d\
                     \nLines: %d" % (self.score, self.level, self.lines),
                                   (self.rlim + cell_size, cell_size * 5))
                     self.draw_matrix(self.bground_grid, (0, 0))
                     self.draw_matrix(self.board, (0, 0))
-                    self.draw_matrix(self.stone,
-                                     (self.stone_x, self.stone_y))
-                    self.draw_matrix(self.next_stone,
-                                     (cols + 1, 2))
+                    self.draw_matrix(self.stone, (self.stone_x, self.stone_y))
+                    self.draw_matrix(self.next_stone, (cols + 1, 2))
             pygame.display.update()
 
             for event in pygame.event.get():
